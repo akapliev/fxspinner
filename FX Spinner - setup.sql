@@ -198,6 +198,38 @@ CREATE OPERATOR >= (
 
 /* currency amount comparison operators */
 
+/*
+ * нужны функции умножения на число
+ * */
+
+CREATE OR REPLACE FUNCTION multiply(coef numeric, amount currency_amount)
+RETURNS currency_amount
+AS
+$$
+SELECT (coef * (amount).amount, (amount)."code");
+$$ LANGUAGE SQL IMMUTABLE STRICT;
+
+CREATE OPERATOR * (
+    FUNCTION = multiply,
+    LEFTARG = numeric,
+    RIGHTARG = currency_amount
+);
+
+
+CREATE OR REPLACE FUNCTION multiply(amount currency_amount, coef numeric)
+RETURNS currency_amount
+AS
+$$
+SELECT (coef * (amount).amount, (amount)."code");
+$$ LANGUAGE SQL IMMUTABLE STRICT;
+
+CREATE OPERATOR * (
+    FUNCTION = multiply,
+    LEFTARG = currency_amount, 
+    RIGHTARG = numeric
+);
+
+
 
 
 /* Тип в котором можно хранить котировку..
@@ -377,7 +409,7 @@ SELECT "limit"
        AND ARRAY[("limit")."quote", ("limit")."base"] @> ARRAY[curr1, curr2]  -- только релевантные валютные пары
  ORDER BY (timest - time)
  LIMIT 1
-$$ LANGUAGE SQL
+$$ LANGUAGE SQL;
 
 
 /* Таблица с балансами. Считается функцией
@@ -450,9 +482,9 @@ BEGIN
            -- посчитаем PL
            IF counter.same_direction = FALSE THEN
                IF counter.crossing_zero = TRUE THEN
-                   counter.pl = (abs(counter.balance) @ iter.rate) - (abs(counter.balance) @ counter.rate); 
+                   counter.pl = (CASE iter.direction WHEN 'SELL' THEN 1 ELSE -1 END) * ((abs(counter.balance) @ iter.rate) - (abs(counter.balance) @ counter.rate)); 
                ELSEIF counter.crossing_zero = FALSE THEN
-                   counter.pl = (iter.trade @ iter.rate) - (iter.trade @ counter.rate);
+                   counter.pl = (CASE iter.direction WHEN 'SELL' THEN 1 ELSE -1 END) * ((iter.trade @ iter.rate) - (iter.trade @ counter.rate));
                END IF;
            ELSE 
                counter.pl = (0, 'RUR' )::currency_amount;
