@@ -1,6 +1,7 @@
 /*
  * Тут все дропы в правильном порядке
  */
+DROP PROCEDURE update_balance CASCADE;
 DROP FUNCTION latestLimit CASCADE;
 DROP FUNCTION closestQuote CASCADE;
 DROP TABLE balance CASCADE;
@@ -20,6 +21,18 @@ DROP OPERATOR - (currency_amount, currency_amount) CASCADE;
 DROP FUNCTION addCurrencies CASCADE;
 DROP FUNCTION subtractCurrencies CASCADE;
 DROP FUNCTION abs(currency_amount) CASCADE;
+DROP OPERATOR = (currency_amount, currency_amount) CASCADE;
+DROP OPERATOR != (currency_amount, currency_amount) CASCADE;
+DROP OPERATOR > (currency_amount, currency_amount) CASCADE;
+DROP OPERATOR < (currency_amount, currency_amount) CASCADE;
+DROP OPERATOR >= (currency_amount, currency_amount) CASCADE;
+DROP OPERATOR <= (currency_amount, currency_amount) CASCADE;
+DROP FUNCTION equal(currency_amount, currency_amount) CASCADE;
+DROP FUNCTION not_equal(currency_amount, currency_amount) CASCADE;
+DROP FUNCTION less_then(currency_amount, currency_amount) CASCADE;
+DROP FUNCTION greater_then(currency_amount, currency_amount) CASCADE;
+DROP FUNCTION less_or_equal_then(currency_amount, currency_amount) CASCADE;
+DROP FUNCTION greater_or_equal_then(currency_amount, currency_amount) CASCADE;
 DROP DOMAIN currency_amount CASCADE;
 DROP TYPE currency_amount_type CASCADE;
 DROP DOMAIN trade_direction CASCADE;
@@ -89,30 +102,45 @@ CREATE OPERATOR - (
     RIGHTARG = currency_amount
 );
 
-/*-------------------------------
+/* currency amount comparison operators */
 CREATE OR REPLACE FUNCTION equal(amount1 currency_amount, amount2 currency_amount)
 RETURNS boolean
 AS
 $$
-SELECT CASE WHEN  THEN NULL::boolean
-            ELSE 
+SELECT CASE WHEN (amount1).code != (amount2).code THEN NULL::boolean
+            ELSE (amount1).amount = (amount2).amount
        END;
 $$ LANGUAGE SQL IMMUTABLE STRICT;
 
 CREATE OPERATOR = (
-    FUNCTION = less_then,
+    FUNCTION = equal,
     LEFTARG = currency_amount,
     RIGHTARG = currency_amount
 );
 
+
+CREATE OR REPLACE FUNCTION not_equal(amount1 currency_amount, amount2 currency_amount)
+RETURNS boolean
+AS
+$$
+SELECT CASE WHEN (amount1).code != (amount2).code THEN NULL::boolean
+            ELSE (amount1).amount != (amount2).amount
+       END;
+$$ LANGUAGE SQL IMMUTABLE STRICT;
+
+CREATE OPERATOR != (
+    FUNCTION = not_equal,
+    LEFTARG = currency_amount,
+    RIGHTARG = currency_amount
+);
 
 
 CREATE OR REPLACE FUNCTION less_then(amount1 currency_amount, amount2 currency_amount)
 RETURNS boolean
 AS
 $$
-SELECT CASE WHEN  THEN NULL::boolean
-            ELSE 
+SELECT CASE WHEN (amount1).code != (amount2).code THEN NULL::boolean
+            ELSE (amount1).amount < (amount2).amount
        END;
 $$ LANGUAGE SQL IMMUTABLE STRICT;
 
@@ -127,12 +155,12 @@ CREATE OR REPLACE FUNCTION greater_then(amount1 currency_amount, amount2 currenc
 RETURNS boolean
 AS
 $$
-SELECT CASE WHEN  THEN NULL::boolean
-            ELSE 
+SELECT CASE WHEN (amount1).code != (amount2).code THEN NULL::boolean
+            ELSE (amount1).amount > (amount2).amount
        END;
 $$ LANGUAGE SQL IMMUTABLE STRICT;
 
-CREATE OPERATOR < (
+CREATE OPERATOR > (
     FUNCTION = greater_then,
     LEFTARG = currency_amount,
     RIGHTARG = currency_amount
@@ -142,8 +170,8 @@ CREATE OR REPLACE FUNCTION less_or_equal_then(amount1 currency_amount, amount2 c
 RETURNS boolean
 AS
 $$
-SELECT CASE WHEN  THEN NULL::boolean
-            ELSE 
+SELECT CASE WHEN (amount1).code != (amount2).code THEN NULL::boolean
+            ELSE (amount1).amount <= (amount2).amount
        END;
 $$ LANGUAGE SQL IMMUTABLE STRICT;
 
@@ -157,21 +185,18 @@ CREATE OR REPLACE FUNCTION greater_or_equal_then(amount1 currency_amount, amount
 RETURNS boolean
 AS
 $$
-SELECT CASE WHEN  THEN NULL::boolean
-            ELSE 
+SELECT CASE WHEN (amount1).code != (amount2).code THEN NULL::boolean
+            ELSE (amount1).amount >= (amount2).amount
        END;
 $$ LANGUAGE SQL IMMUTABLE STRICT;
 
-CREATE OPERATOR <= (
+CREATE OPERATOR >= (
     FUNCTION = greater_or_equal_then,
     LEFTARG = currency_amount,
     RIGHTARG = currency_amount
 );
 
-
-
-
--------------------------------*/
+/* currency amount comparison operators */
 
 
 
@@ -357,7 +382,6 @@ $$ LANGUAGE SQL
 
 /* Таблица с балансами. Считается функцией
  */
-DROP TABLE balance;
 CREATE TABLE IF NOT EXISTS balance (
     id            bigint
     ,time         timestamptz                         -- время сделки
@@ -380,3 +404,83 @@ CREATE TABLE IF NOT EXISTS balance (
            CHECK  ((pl).code = 'RUR')
     ,PRIMARY KEY (id, time)
 );
+
+
+CREATE OR REPLACE PROCEDURE update_balance() AS
+$$
+DECLARE
+   currency record;
+   iter record;
+   counter record;
+BEGIN
+   TRUNCATE balance; --почистим табличку
+   <<currency>>
+   -- побежали по валютам
+   FOR currency IN SELECT DISTINCT (trade).code AS code 
+                     FROM registry 
+   LOOP
+       -- проинициализируем счетчики
+       SELECT (0, currency.code)::currency_amount       AS balance
+              ,(1, currency.code, 'RUR')::currency_rate AS rate
+              ,(0, 'RUR')::currency_amount              AS pl
+              ,TRUE AS same_direction
+              ,FALSE AS crossing_zero
+         INTO counter;
+       <<balance>>
+       FOR iter IN SELECT * -- #TODO явно поименовать
+                     FROM registry 
+                    WHERE (trade).code = currency.code
+                          AND deleted_flag = FALSE
+                    ORDER BY time ASC, id ASC
+       LOOP
+           -- поймем направление сделки
+           IF (iter.direction ='BUY' AND (counter.balance).amount >= 0) OR (iter.direction ='SELL' AND (counter.balance).amount <= 0) THEN 
+                counter.same_direction := TRUE;
+                counter.crossing_zero := FALSE;
+           ELSEIF (iter.direction ='BUY' AND (counter.balance).amount < 0) OR (iter.direction ='SELL' AND (counter.balance).amount > 0) THEN 
+                counter.same_direction := FALSE;
+                IF iter.trade > abs(counter.balance) THEN
+                    counter.crossing_zero := TRUE;
+                ELSEIF iter.trade <= abs(counter.balance) THEN
+                    counter.crossing_zero := FALSE;
+                END IF;
+
+           END IF;
+
+           -- посчитаем PL
+           IF counter.same_direction = FALSE THEN
+               IF counter.crossing_zero = TRUE THEN
+                   counter.pl = (abs(counter.balance) @ iter.rate) - (abs(counter.balance) @ counter.rate); 
+               ELSEIF counter.crossing_zero = FALSE THEN
+                   counter.pl = (iter.trade @ iter.rate) - (iter.trade @ counter.rate);
+               END IF;
+           ELSE 
+               counter.pl = (0, 'RUR' )::currency_amount;
+           END IF;
+           
+
+           -- обновим цену
+           IF counter.same_direction = TRUE THEN
+               counter.rate := ((iter.trade @ iter.rate) + (abs(counter.balance) @ counter.rate)) / (iter.trade + abs(counter.balance));  -- копим сделку
+           ELSEIF ((counter.same_direction = FALSE) AND (counter.crossing_zero = TRUE)) THEN
+               counter.rate := iter.rate;  -- меняем цену
+           -- этот кусок не отрабатывает
+           ELSEIF ((counter.same_direction = FALSE) AND (counter.crossing_zero = FALSE)) THEN
+               counter.rate := counter.rate;  -- оставляем цену
+           END IF;
+
+           -- обновим баланс
+           IF iter.direction = 'BUY' THEN
+               counter.balance := counter.balance + iter.trade;
+           ELSEIF iter.direction = 'SELL' THEN
+               counter.balance := counter.balance - iter.trade;
+           END IF;
+
+           -- добавим запись в таблицу
+           INSERT INTO balance(id, time, client, direction, trade, rate, payload, balance, balance_price, pl) 
+                  VALUES (iter.id, iter.time, iter.client, iter.direction, iter.trade, iter.rate, iter.payload, counter.balance, counter.rate, counter.pl);
+       END LOOP balance;
+   END LOOP currency;
+END;
+$$ LANGUAGE plpgsql;
+
