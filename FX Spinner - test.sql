@@ -32,6 +32,22 @@ SELECT * FROM limits;
 
 
 CALL update_balance();
-SELECT id, client, direction, trade, rate, balance, balance_price, pl FROM balance ORDER BY time ASC, id ASC;
 
-
+WITH tmp1 AS (SELECT id 
+                     ,client 
+                     ,direction 
+                     ,trade 
+                     ,rate 
+                     ,closestQuote(direction, (rate)."base", (rate)."quote", time) AS reference_rate
+                     ,balance 
+                     ,balance_price
+                     ,pl AS gain_loss
+                FROM balance
+               WHERE (trade).code != 'EUR'
+               ORDER BY time ASC, id ASC),
+    tmp2 AS  (SELECT * 
+                     ,(CASE direction WHEN 'SELL' THEN 1 ELSE -1 END ) * ((trade @ rate) - (trade @ reference_rate)) as transaction_loss
+                FROM tmp1)
+SELECT *,
+       gain_loss + transaction_loss AS total
+  FROM tmp2;

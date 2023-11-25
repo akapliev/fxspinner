@@ -10,6 +10,8 @@ DROP TABLE quotes CASCADE;
 DROP TABLE registry CASCADE;
 DROP OPERATOR @ (currency_amount, currency_rate) CASCADE;
 DROP OPERATOR / (currency_amount, currency_amount) CASCADE;
+--DROP OPERATOR - (currency_rate, currency_rate) CASCADE;
+--DROP FUNCTION rate_diff(currency_rate, currency_rate) CASCADE;
 DROP FUNCTION crossrate CASCADE;
 DROP FUNCTION rate(currency_amount, currency_amount) CASCADE;
 DROP OPERATOR @ (currency_amount, currency_rate) CASCADE;
@@ -336,6 +338,30 @@ CREATE OPERATOR @ (
     LEFTARG = currency_rate,
     RIGHTARG = currency_rate
 );
+
+-----------------------------------------------------
+--- кажется это функция может уйти за пределы домена #TODO надо поправить логику
+--DROP FUNCTION rate_diff(currency_rate, currency_rate) CASCADE;
+--
+--CREATE OR REPLACE FUNCTION rate_diff(rate1 currency_rate, rate2 currency_rate)
+--RETURNS currency_rate_type
+--AS
+--$$
+--SELECT CASE WHEN (rate1."base" = rate2."base")  AND (rate1."quote" = rate2."quote")  THEN (rate1.rate - rate2.rate, rate1."base", rate1."quote")::currency_rate_type
+--            WHEN (rate1."base" = rate2."quote") AND (rate1."quote" = rate2."base")   THEN ((rate1.rate - (1 / rate2.rate))::numeric, rate1."base", rate1."quote")::currency_rate_type
+--            ELSE NULL::currency_rate
+--        END;
+--$$ LANGUAGE SQL IMMUTABLE STRICT;
+--
+--CREATE OPERATOR - (
+--    FUNCTION = rate_diff,
+--    LEFTARG = currency_rate,
+--    RIGHTARG = currency_rate
+--);
+
+------------
+
+
 
 
 /* Таблица со сделками. Каждый клиент вносит свои сделки

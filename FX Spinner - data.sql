@@ -1,39 +1,57 @@
 TRUNCATE registry;
 INSERT INTO registry (time, client, direction, trade, rate) VALUES
-    ('2023-11-01 12:00 MSK', 'checkouter', 'SELL', (1000.00, 'CNY'), (11.00, 'CNY', 'RUR')),
-    ('2023-11-02 12:00 MSK', 'checkouter', 'SELL', (500.00, 'CNY'), (12.00, 'CNY', 'RUR')),
-    ('2023-11-03 12:00 MSK', 'checkouter', 'BUY',  (800.00, 'CNY'), (10.00, 'CNY', 'RUR')),
-    ('2023-11-04 12:00 MSK', 'checkouter', 'BUY',  (800.00, 'CNY'), (10.50, 'CNY', 'RUR')),
-    ('2023-11-05 12:00 MSK', 'checkouter', 'SELL', (500.00, 'USD'), (70.00, 'USD', 'RUR')),
-    ('2023-11-06 12:00 MSK', 'checkouter', 'SELL', (250.00, 'USD'), (75.00, 'USD', 'RUR')),
-    ('2023-11-07 12:00 MSK', 'checkouter', 'BUY',  (400.00, 'USD'), (65.00, 'USD', 'RUR')),
-    ('2023-11-08 12:00 MSK', 'checkouter', 'BUY',  (400.00, 'USD'), (70.00, 'USD', 'RUR')),
-    ('2023-11-09 12:00 MSK', 'checkouter', 'BUY',  (200.00, 'USD'), (99.00, 'USD', 'RUR')),
-    ('2023-11-10 12:00 MSK', 'checkouter', 'BUY',  (1.00, 'IPH'), (1000.00, 'IPH', 'RUR')),
-    ('2023-11-11 12:00 MSK', 'checkouter', 'BUY',  (1.00, 'IPH'), (1100.00, 'IPH', 'RUR')),
-    ('2023-11-12 12:00 MSK', 'checkouter', 'BUY',  (1.00, 'IPH'), (1200.00, 'IPH', 'RUR')),
-    ('2023-11-13 12:00 MSK', 'checkouter', 'BUY',  (3.00, 'IPH'), (900.00, 'IPH', 'RUR')),
-    ('2023-11-14 12:00 MSK', 'checkouter', 'SELL', (10.00, 'IPH'), (900.00, 'IPH', 'RUR')),
-    ('2023-11-15 12:00 MSK', 'checkouter', 'BUY',  (2.00, 'IPH'), (1000.00, 'IPH', 'RUR')),
-    ('2023-11-16 12:00 MSK', 'checkouter', 'BUY',  (2.00, 'IPH'), (1000.00, 'IPH', 'RUR')),
-    ('2023-11-17 12:00 MSK', 'checkouter', 'BUY',  (1.00, 'IPH'), (800.00, 'IPH', 'RUR')),
-    ('2023-11-18 12:00 MSK', 'checkouter', 'SELL', (2.00, 'PSP'), (700.00, 'PSP', 'RUR')),
-    ('2023-11-19 12:00 MSK', 'checkouter', 'BUY',  (1.00, 'PSP'), (600.00, 'PSP', 'RUR')),
-    ('2023-11-20 12:00 MSK', 'checkouter', 'BUY',  (1.00, 'PSP'), (600.00, 'PSP', 'RUR')),
+    ('2023-11-01 12:00 MSK', 'market', 'SELL', (1000.00, 'CNY'), (11.00, 'CNY', 'RUR')),
+    ('2023-11-02 12:00 MSK', 'market', 'SELL', (500.00, 'CNY'), (12.00, 'CNY', 'RUR')),
+    ('2023-11-03 12:00 MSK', 'market', 'BUY',  (800.00, 'CNY'), (10.00, 'CNY', 'RUR')),
+    ('2023-11-04 12:00 MSK', 'market', 'BUY',  (800.00, 'CNY'), (10.50, 'CNY', 'RUR')),
+    ('2023-11-05 12:00 MSK', 'market', 'SELL', (500.00, 'USD'), (70.00, 'USD', 'RUR')),
+    ('2023-11-06 12:00 MSK', 'market', 'SELL', (250.00, 'USD'), (75.00, 'USD', 'RUR')),
+    ('2023-11-07 12:00 MSK', 'market', 'BUY',  (400.00, 'USD'), (65.00, 'USD', 'RUR')),
+    ('2023-11-08 12:00 MSK', 'market', 'BUY',  (400.00, 'USD'), (70.00, 'USD', 'RUR')),
+    ('2023-11-09 12:00 MSK', 'market', 'BUY',  (200.00, 'USD'), (99.00, 'USD', 'RUR')),
+    ('2023-11-10 12:00 MSK', 'market', 'BUY',  (1.00, 'IPH'), (1000.00, 'IPH', 'RUR')),
+    ('2023-11-11 12:00 MSK', 'market', 'BUY',  (1.00, 'IPH'), (1100.00, 'IPH', 'RUR')),
+    ('2023-11-12 12:00 MSK', 'market', 'BUY',  (1.00, 'IPH'), (1200.00, 'IPH', 'RUR')),
+    ('2023-11-13 12:00 MSK', 'market', 'BUY',  (3.00, 'IPH'), (900.00, 'IPH', 'RUR')),
+    ('2023-11-14 12:00 MSK', 'market', 'SELL', (10.00, 'IPH'), (900.00, 'IPH', 'RUR')),
+    ('2023-11-15 12:00 MSK', 'market', 'BUY',  (2.00, 'IPH'), (1000.00, 'IPH', 'RUR')),
+    ('2023-11-16 12:00 MSK', 'market', 'BUY',  (2.00, 'IPH'), (1000.00, 'IPH', 'RUR')),
+    ('2023-11-17 12:00 MSK', 'market', 'BUY',  (1.00, 'IPH'), (800.00, 'IPH', 'RUR')),
+    ('2023-11-18 12:00 MSK', 'market', 'SELL', (2.00, 'PSP'), (700.00, 'PSP', 'RUR')),
+    ('2023-11-19 12:00 MSK', 'market', 'BUY',  (1.00, 'PSP'), (600.00, 'PSP', 'RUR')),
+    ('2023-11-20 12:00 MSK', 'market', 'BUY',  (1.00, 'PSP'), (600.00, 'PSP', 'RUR')),
+    ('2023-11-01 13:00 MSK', 'market', 'SELL',  (100.00, 'EUR'), (88.00, 'EUR', 'RUR')),
+    ('2023-11-02 13:00 MSK', 'market', 'SELL',  (100.00, 'EUR'), (89.00, 'EUR', 'RUR')),
+    ('2023-11-03 13:00 MSK', 'market', 'SELL',  (100.00, 'EUR'), (90.00, 'EUR', 'RUR')),
+    ('2023-11-04 13:00 MSK', 'market', 'BUY',  (200.00, 'EUR'), (95.00, 'EUR', 'RUR')),
+    ('2023-11-05 13:00 MSK', 'market', 'SELL',  (100.00, 'EUR'), (92.00, 'EUR', 'RUR')),
+    ('2023-11-06 13:00 MSK', 'market', 'BUY',  (200.00, 'EUR'), (97.00, 'EUR', 'RUR')),
+    ('2023-11-07 13:00 MSK', 'market', 'SELL',  (100.00, 'EUR'), (94.00, 'EUR', 'RUR')),
+    ('2023-11-08 13:00 MSK', 'market', 'SELL',  (100.00, 'EUR'), (95.00, 'EUR', 'RUR')),
+    ('2023-11-09 13:00 MSK', 'market', 'BUY',  (300.00, 'EUR'), (100.00, 'EUR', 'RUR')),
+    ('2023-11-10 13:00 MSK', 'market', 'BUY',  (100.00, 'EUR'), (101.00, 'EUR', 'RUR')),
+    ('2023-11-11 13:00 MSK', 'market', 'SELL',  (100.00, 'EUR'), (98.00, 'EUR', 'RUR')),
+    ('2023-11-12 13:00 MSK', 'market', 'SELL',  (300.00, 'EUR'), (99.00, 'EUR', 'RUR')),
+    ('2023-11-13 13:00 MSK', 'market', 'SELL',  (100.00, 'EUR'), (100.00, 'EUR', 'RUR')),
+    ('2023-11-14 13:00 MSK', 'market', 'SELL',  (100.00, 'EUR'), (101.00, 'EUR', 'RUR')),
+    ('2023-11-15 13:00 MSK', 'market', 'SELL',  (100.00, 'EUR'), (102.00, 'EUR', 'RUR')),
+    ('2023-11-16 13:00 MSK', 'market', 'BUY',  (1000.00, 'EUR'), (107.00, 'EUR', 'RUR')),
+    ('2023-11-17 13:00 MSK', 'market', 'SELL',  (100.00, 'EUR'), (102.00, 'EUR', 'RUR')),
+    ('2023-11-18 13:00 MSK', 'market', 'SELL',  (100.00, 'EUR'), (101.00, 'EUR', 'RUR')),
+    ('2023-11-19 13:00 MSK', 'market', 'SELL',  (100.00, 'EUR'), (100.00, 'EUR', 'RUR')),
+    ('2023-11-20 13:00 MSK', 'market', 'SELL',  (100.00, 'EUR'), (99.00, 'EUR', 'RUR')),
+    ('2023-11-21 13:00 MSK', 'market', 'SELL',  (100.00, 'EUR'), (98.00, 'EUR', 'RUR')),
+    ('2023-11-22 13:00 MSK', 'market', 'SELL',  (100.00, 'EUR'), (97.00, 'EUR', 'RUR')),
+    ('2023-11-23 13:00 MSK', 'market', 'BUY',  (1000.00, 'EUR'), (100.00, 'EUR', 'RUR')),
+    ('2023-11-24 13:00 MSK', 'market', 'SELL',  (100.00, 'EUR'), (95.00, 'EUR', 'RUR')),
+    ('2023-11-25 13:00 MSK', 'market', 'SELL',  (100.00, 'EUR'), (94.00, 'EUR', 'RUR')),
+    ('2023-11-26 13:00 MSK', 'market', 'SELL',  (100.00, 'EUR'), (93.00, 'EUR', 'RUR')),
+    ('2023-11-27 13:00 MSK', 'market', 'SELL',  (100.00, 'EUR'), (94.00, 'EUR', 'RUR')),
+    ('2023-11-28 13:00 MSK', 'market', 'SELL',  (100.00, 'EUR'), (95.00, 'EUR', 'RUR')),
+    ('2023-11-29 13:00 MSK', 'market', 'SELL',  (100.00, 'EUR'), (96.00, 'EUR', 'RUR')),
+    ('2023-11-30 13:00 MSK', 'market', 'SELL',  (100.00, 'EUR'), (97.00, 'EUR', 'RUR'))
     
-    ('2023-11-01 12:00 MSK', 'checkouter', 'SELL',  (100.00, 'EUR'), (88.00, 'EUR', 'RUR')),
     
-    
-;
-
-TRUNCATE limits;
-INSERT INTO limits (time, client, direction, "limit") VALUES 
-    ('2023-11-01 12:00 MSK', 'checkouter', 'BUY', (11.00, 'CNY', 'RUR')),
-    ('2023-11-02 12:00 MSK', 'checkouter', 'SELL', (10.80, 'CNY', 'RUR')),
-    ('2023-11-03 12:00 MSK', 'checkouter', 'BUY', (11.20, 'CNY', 'RUR')),
-    ('2023-11-04 12:00 MSK', 'checkouter', 'SELL', (11.20, 'CNY', 'RUR')),
-    ('2023-11-05 12:00 MSK', 'checkouter', 'BUY', (11.60, 'CNY', 'RUR')),
-    ('2023-11-06 12:00 MSK', 'checkouter', 'SELL', (11.40, 'CNY', 'RUR'))
 ;
 
 TRUNCATE quotes;
@@ -141,3 +159,14 @@ INSERT INTO quotes (time, direction, rate) VALUES
     ('2023-11-30 12:00 MSK', 'SELL', (99.00 - 1.00, 'EUR', 'RUR'))
 ;
 
+
+
+TRUNCATE limits;
+INSERT INTO limits (time, client, direction, "limit") VALUES 
+    ('2023-11-01 12:00 MSK', 'market', 'BUY', (11.00, 'CNY', 'RUR')),
+    ('2023-11-02 12:00 MSK', 'market', 'SELL', (10.80, 'CNY', 'RUR')),
+    ('2023-11-03 12:00 MSK', 'market', 'BUY', (11.20, 'CNY', 'RUR')),
+    ('2023-11-04 12:00 MSK', 'market', 'SELL', (11.20, 'CNY', 'RUR')),
+    ('2023-11-05 12:00 MSK', 'market', 'BUY', (11.60, 'CNY', 'RUR')),
+    ('2023-11-06 12:00 MSK', 'market', 'SELL', (11.40, 'CNY', 'RUR'))
+;
