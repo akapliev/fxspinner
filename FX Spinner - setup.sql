@@ -14,8 +14,11 @@ DROP FUNCTION crossrate CASCADE;
 DROP FUNCTION rate(currency_amount, currency_amount) CASCADE;
 DROP OPERATOR @ (currency_amount, currency_rate) CASCADE;
 DROP FUNCTION convert(currency_amount, currency_rate) CASCADE;
+DROP FUNCTION inv(currency_rate) CASCADE;
 DROP DOMAIN currency_rate CASCADE;
 DROP TYPE currency_rate_type CASCADE;
+DROP OPERATOR * (currency_amount, NUMERIC) CASCADE;
+DROP OPERATOR * (NUMERIC, currency_amount, ) CASCADE;
 DROP OPERATOR + (currency_amount, currency_amount) CASCADE;
 DROP OPERATOR - (currency_amount, currency_amount) CASCADE;
 DROP FUNCTION addCurrencies CASCADE;
@@ -27,6 +30,8 @@ DROP OPERATOR > (currency_amount, currency_amount) CASCADE;
 DROP OPERATOR < (currency_amount, currency_amount) CASCADE;
 DROP OPERATOR >= (currency_amount, currency_amount) CASCADE;
 DROP OPERATOR <= (currency_amount, currency_amount) CASCADE;
+DROP FUNCTION multiply(currency_amount, NUMERIC);
+DROP FUNCTION multiply(NUMERIC, currency_amount);
 DROP FUNCTION equal(currency_amount, currency_amount) CASCADE;
 DROP FUNCTION not_equal(currency_amount, currency_amount) CASCADE;
 DROP FUNCTION less_then(currency_amount, currency_amount) CASCADE;
@@ -65,6 +70,8 @@ AS
 $$
 SELECT (abs((amount).amount), (amount).code)::currency_amount;
 $$ LANGUAGE SQL IMMUTABLE STRICT;
+
+
 
 /* Функция сложения двух величин в одной валюте 
  */
@@ -247,6 +254,15 @@ CREATE TYPE currency_rate_type AS (
 
 CREATE DOMAIN currency_rate AS currency_rate_type 
         CHECK (((VALUE).rate IS NOT NULL AND (VALUE).rate > 0) AND (VALUE).base != (VALUE).quote);
+
+/* 1/rate 
+ */
+CREATE OR REPLACE FUNCTION inv(rate currency_rate)
+RETURNS currency_rate
+AS
+$$
+SELECT (1/(rate).rate::numeric, (rate)."quote", (rate)."base")::currency_rate;
+$$ LANGUAGE SQL IMMUTABLE STRICT;
 
 
 /* Функция конверсии заданной суммы в валюте по курсу в другую валюту
