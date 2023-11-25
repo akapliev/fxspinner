@@ -1,0 +1,44 @@
+/*
+ * Тут все дропы в правильном порядке
+ */
+DROP PROCEDURE update_balance CASCADE;
+DROP FUNCTION latestLimit CASCADE;
+DROP FUNCTION closestQuote CASCADE;
+DROP TABLE balance CASCADE;
+DROP TABLE limits CASCADE;
+DROP TABLE quotes CASCADE;
+DROP TABLE registry CASCADE;
+DROP OPERATOR @ (currency_amount, currency_rate) CASCADE;
+DROP OPERATOR / (currency_amount, currency_amount) CASCADE;
+DROP FUNCTION crossrate CASCADE;
+DROP FUNCTION rate(currency_amount, currency_amount) CASCADE;
+DROP OPERATOR @ (currency_amount, currency_rate) CASCADE;
+DROP FUNCTION convert(currency_amount, currency_rate) CASCADE;
+DROP FUNCTION inv(currency_rate) CASCADE;
+DROP DOMAIN currency_rate CASCADE;
+DROP TYPE currency_rate_type CASCADE;
+DROP OPERATOR * (currency_amount, NUMERIC) CASCADE;
+DROP OPERATOR * (NUMERIC, currency_amount, ) CASCADE;
+DROP OPERATOR + (currency_amount, currency_amount) CASCADE;
+DROP OPERATOR - (currency_amount, currency_amount) CASCADE;
+DROP FUNCTION addCurrencies CASCADE;
+DROP FUNCTION subtractCurrencies CASCADE;
+DROP FUNCTION abs(currency_amount) CASCADE;
+DROP OPERATOR = (currency_amount, currency_amount) CASCADE;
+DROP OPERATOR != (currency_amount, currency_amount) CASCADE;
+DROP OPERATOR > (currency_amount, currency_amount) CASCADE;
+DROP OPERATOR < (currency_amount, currency_amount) CASCADE;
+DROP OPERATOR >= (currency_amount, currency_amount) CASCADE;
+DROP OPERATOR <= (currency_amount, currency_amount) CASCADE;
+DROP FUNCTION multiply(currency_amount, NUMERIC);
+DROP FUNCTION multiply(NUMERIC, currency_amount);
+DROP FUNCTION equal(currency_amount, currency_amount) CASCADE;
+DROP FUNCTION not_equal(currency_amount, currency_amount) CASCADE;
+DROP FUNCTION less_then(currency_amount, currency_amount) CASCADE;
+DROP FUNCTION greater_then(currency_amount, currency_amount) CASCADE;
+DROP FUNCTION less_or_equal_then(currency_amount, currency_amount) CASCADE;
+DROP FUNCTION greater_or_equal_then(currency_amount, currency_amount) CASCADE;
+DROP DOMAIN currency_amount CASCADE;
+DROP TYPE currency_amount_type CASCADE;
+DROP DOMAIN trade_direction CASCADE;
+DROP DOMAIN currency_code CASCADE;

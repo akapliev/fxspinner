@@ -11,13 +11,13 @@ SELECT crossrate((1/90::numeric, 'RUR', 'USD'), (14, 'CNY', 'RUR'));
 SELECT crossrate((1/90::numeric, 'RUR', 'USD'), (1/14::numeric, 'RUR', 'CNY'));
 SELECT (1/90::numeric, 'RUR', 'USD')::currency_ratio @ (1/14::numeric, 'RUR', 'CNY')::currency_ratio;
 SELECT (100, 'USD')::currency_amount @ (1/90::numeric, 'RUR', 'USD')::currency_ratio @ (1/14::numeric, 'RUR', 'CNY')::currency_ratio;
-SELECT closestQuote('SELL', 'RUR', 'CNY', '2023-11-19 10:00 MSK');
-SELECT closestQuote('SELL', 'RUR', 'CNY', '2023-10-19 10:00 MSK') IS NULL;
-SELECT *, closestQuote(time, direction, 'RUR', trade.code) FROM registry;
-SELECT latestLimit('checkouter', 'SELL', 'RUR', 'CNY', '2023-11-19 10:00 MSK');
-SELECT latestLimit('checkouter', 'BUY', 'RUR', 'CNY');
-SELECT substractCurrencies((1000, 'USD'), (2000, 'USD'));
-SELECT addCurrencies((1000, 'USD'), (2000, 'USD'));
+SELECT closest_quote('SELL', 'RUR', 'CNY', '2023-11-19 10:00 MSK');
+SELECT closest_quote('SELL', 'RUR', 'CNY', '2023-10-19 10:00 MSK') IS NULL;
+SELECT *, closest_quote(time, direction, 'RUR', trade.code) FROM registry;
+SELECT latest_limit('checkouter', 'SELL', 'RUR', 'CNY', '2023-11-19 10:00 MSK');
+SELECT latest_limit('checkouter', 'BUY', 'RUR', 'CNY');
+SELECT substract_currencies((1000, 'USD'), (2000, 'USD'));
+SELECT add_currencies((1000, 'USD'), (2000, 'USD'));
 SELECT (1000, 'USD')::currency_amount + (2000, 'USD')::currency_amount_type;
 SELECT (1000, 'USD')::currency_amount - (2000, 'CNY')::currency_amount_type;
 SELECT (95, 'RUR')::currency_amount / (1, 'USD')::currency_amount_type;
@@ -28,9 +28,6 @@ SELECT * FROM registry;
 SELECT * FROM quotes;
 SELECT * FROM limits;
 
-
-
-
 CALL update_balance();
 
 WITH tmp1 AS (SELECT id 
@@ -38,7 +35,7 @@ WITH tmp1 AS (SELECT id
                      ,direction 
                      ,trade 
                      ,rate 
-                     ,closestQuote(direction, (rate)."base", (rate)."quote", time) AS reference_rate
+                     ,closest_quote(direction, (rate)."base", (rate)."quote", time) AS reference_rate
                      ,balance 
                      ,balance_price
                      ,pl AS gain_loss
