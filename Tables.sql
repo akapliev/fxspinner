@@ -50,31 +50,7 @@ CREATE TABLE IF NOT EXISTS registry(
 
 SELECT * FROM registry;
 
-
-/* Таблица с балансами. Считается функцией
- */
---DROP TABLE IF EXISTS balance;
---CREATE TABLE IF NOT EXISTS balance (
---    id            bigint
---    ,time         timestamptz                         -- время сделки
---    ,client       varchar NOT NULL                    -- клент
---    ,trade        trade_type NOT NULL
---           CHECK ((trade.amount).amount >= 0                   -- не должен быть отрицательным
---                 AND ((trade.rate).code IN ((trade.rate).base, (trade.rate)."quote") -- валюта сделки и котировка друг другу релевантны
---                 AND (trade.amount).code != 'RUR'))             -- проверяем что не по покупке рубля за рубль    
---    ,payload      JSONB                              -- тут пэйлоад схема-специфичный для каждого клиента
---    ,balance      currency_amount
---           CHECK ((trade).code = (balance).code)     -- проверим что сделка и баланс совпадают по валюте,
---    ,balance_price currency_rate
---           CHECK (ARRAY[(balance_price)."quote", (balance_price)."base"] @> ARRAY[(rate).base, (rate)."quote"] 
---                  AND 
---                  ARRAY[(balance_price)."quote", (balance_price)."base"] <@ ARRAY[(rate).base, (rate)."quote"])
---    , pl          currency_amount
---           CHECK  ((pl).code = 'RUR')
---    ,PRIMARY KEY (id, time)
---);
-
-
+/* таблица обогащенная данными о баланс строится процедуркой каждый раз с нуля */
 DROP TABLE IF EXISTS balance;
 CREATE TABLE IF NOT EXISTS balance(
     id             bigint

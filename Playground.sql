@@ -1,25 +1,3 @@
-SELECT 'RUR'::currency_code;
-SELECT 'BUY'::trade_direction;
-SELECT (1291928, NULL)::currency_amount;
-SELECT (15, 'RUR', 'RUR')::currency_ratio;
-SELECT convert((1000, 'USD'), (95, 'USD', 'RUR'));
-SELECT ratio((9500, 'RUR')::currency_amount, (100, 'USD')::currency_amount);
-SELECT (1000, 'USD')::currency_amount @ (95, 'RUR', 'USD')::currency_ratio;
-SELECT crossrate((90, 'USD', 'RUR'), (14, 'CNY', 'RUR'));
-SELECT crossrate((90, 'USD', 'RUR'), (1/14::numeric, 'RUR', 'CNY'));
-SELECT crossrate((1/90::numeric, 'RUR', 'USD'), (14, 'CNY', 'RUR'));
-SELECT crossrate((1/90::numeric, 'RUR', 'USD'), (1/14::numeric, 'RUR', 'CNY'));
-SELECT (1/90::numeric, 'RUR', 'USD')::currency_ratio @ (1/14::numeric, 'RUR', 'CNY')::currency_ratio;
-SELECT (100, 'USD')::currency_amount @ (1/90::numeric, 'RUR', 'USD')::currency_ratio @ (1/14::numeric, 'RUR', 'CNY')::currency_ratio;
-SELECT substract_currencies((1000, 'USD'), (2000, 'USD'));
-SELECT add_currencies((1000, 'USD'), (2000, 'USD'));
-SELECT (1000, 'USD')::currency_amount + (2000, 'USD')::currency_amount_type;
-SELECT (1000, 'USD')::currency_amount - (2000, 'CNY')::currency_amount_type;
-SELECT (95, 'RUR')::currency_amount / (1, 'USD')::currency_amount_type;
-SELECT (96, 'CNY')::currency_amount != (95, 'RUR')::currency_amount;
-
-
-
 
 SELECT *, (trade).amount FROM registry;
 
@@ -28,19 +6,20 @@ CALL update_balance();
 
 WITH tmp1 AS (SELECT id 
                      ,client 
-                     ,direction 
                      ,trade 
-                     ,rate 
-                     ,closest_quote(direction, (rate)."base", (rate)."quote", time) AS reference_rate
+                     ,closest_quote((trade).direction, ((trade).rate)."base", ((trade).rate)."quote", time) AS reference_rate
                      ,balance 
                      ,balance_price
-                     ,pl AS gain_loss
+                     ,pl
                 FROM balance
-               WHERE (trade).code != 'EUR'
+               WHERE ((trade).amount).code = 'EUR'
                ORDER BY time ASC, id ASC),
     tmp2 AS  (SELECT * 
-                     ,(CASE direction WHEN 'SELL' THEN 1 ELSE -1 END ) * ((trade @ rate) - (trade @ reference_rate)) as transaction_loss
+                     ,(CASE (trade).direction WHEN 'SELL' THEN 1 ELSE -1 END ) * (((trade).amount @ ((trade).rate)) - ((trade).amount @ reference_rate)) as pl_transaction
                 FROM tmp1)
 SELECT *,
-       gain_loss + transaction_loss AS total
+       pl - pl_transaction AS pl_time
   FROM tmp2;
+
+  
+-- надо обработать NULLS в операторах
