@@ -1,24 +1,3 @@
-/* Таблица со сделками. Каждый клиент вносит свои сделки
- */
-
-DROP TABLE IF EXISTS registry;
-CREATE TABLE IF NOT EXISTS registry(
-    id           serial
-    ,time        timestamptz DEFAULT now()           -- время сделки
-    ,client      varchar NOT NULL                    -- клент
-    ,direction   trade_direction                     -- направление сделки (купить или продать)
-    ,trade       currency_amount                     -- объем сделки (включая валюту)
-           CHECK ((trade).amount >= 0                  -- не должен быть отрицательным
-                 AND ((trade).code IN ((rate).base, (rate)."quote") -- валюта сделки и котировка друг другу релевантны
-                 AND (trade).code != 'RUR'))             -- проверяем что не по покупке рубля за рубль
-    ,rate        currency_rate                       -- цена сделки
-           CHECK ('RUR' IN ((rate).base, (rate)."quote")) -- проверяем что рейт относительно рубля а не какой нибудь
-    ,payload      JSONB                              -- тут пэйлоад схема-специфичный для каждого клиента
-    ,deleted_flag boolean DEFAULT FALSE             -- пометка о сторнировании операции
-    ,PRIMARY KEY (id, time)
-);
-
-
 /* Таблица с установленными порогами на операцию
  * чтобы каждому клиенту можно было сопоставить 
  *  - направление, 
@@ -31,23 +10,45 @@ CREATE TABLE IF NOT EXISTS limits (
     id         serial
     ,time      timestamp DEFAULT now()            -- время установления лимита
     ,client    varchar NOT NULL                   -- клиент
-    ,direction trade_direction                    -- направление котировки (покупаем или продаем)
-    ,"limit"   currency_rate                      -- лимит установленный для данного клиента по сделком в даннном направлении
-    ,PRIMARY KEY (id, time)
+    ,"limit"   trade_limit_type
+    ,PRIMARY KEY (id, time)                       -- -- лимит установленный для данного клиента по сделком в даннном направлении
 );
 
 
-/* Информационная таблица с котировками из разных источников
- */
+--SELECT * FROM limits;
+--SELECT *, (("limit").rate).rate FROM limits;
+
+
+/* Информационная таблица с котировками из разных источников*/
 DROP TABLE IF EXISTS quotes;
 CREATE TABLE IF NOT EXISTS quotes (
     id         serial
     ,time      timestamp DEFAULT now()            -- время снятия данных
-    ,direction trade_direction                    -- направление котировки (покупаем или продаем)
+    ,direction direction_type NOT NULL                    -- направление котировки (покупаем или продаем)
     ,rate      currency_rate                      -- котировка валютной пары
     ,"source"  varchar                            -- источник данных (пока varchar, потом подумаем)
     ,PRIMARY KEY (id, time)
 );
+
+--SELECT * FROM quotes;
+
+/* Таблица со сделками. Каждый клиент вносит свои сделки*/
+DROP TABLE IF EXISTS registry;
+CREATE TABLE IF NOT EXISTS registry(
+    id           serial
+    ,time        timestamptz DEFAULT now()           -- время сделки
+    ,client      varchar NOT NULL                    -- клент
+    ,trade       trade_type NOT NULL
+           CHECK (((trade).amount).amount >= 0                   -- не должен быть отрицательным
+                 AND (((trade).amount).code IN (((trade).rate).base, ((trade).rate)."quote") -- валюта сделки и котировка друг другу релевантны
+                 AND ((trade).amount).code != 'RUR')             -- проверяем что не по покупке рубля за рубль    
+                 AND ('RUR' IN (((trade).rate).base, ((trade).rate)."quote")))
+    ,payload      JSONB                              -- тут пэйлоад схема-специфичный для каждого клиента
+    ,deleted      boolean DEFAULT FALSE             -- пометка о сторнировании операции
+    ,PRIMARY KEY (id, time)
+);
+
+SELECT * FROM registry;
 
 
 /* Таблица с балансами. Считается функцией
@@ -57,13 +58,10 @@ CREATE TABLE IF NOT EXISTS balance (
     id            bigint
     ,time         timestamptz                         -- время сделки
     ,client       varchar NOT NULL                    -- клент
-    ,direction    trade_direction                     -- направление сделки (купить или продать)
-    ,trade        currency_amount                     -- объем сделки (включая валюту)
-           CHECK ((trade).amount >= 0                   -- не должен быть отрицательным
-                 AND ((trade).code IN ((rate).base, (rate)."quote") -- валюта сделки и котировка друг другу релевантны
-                 AND (trade).code != 'RUR'))             -- проверяем что не по покупке рубля за рубль
-    ,rate         currency_rate                       -- цена сделки
-           CHECK ('RUR' IN ((rate).base, (rate)."quote")) -- проверяем что рейт относительно рубля а не какой нибудь
+    ,trade        trade_type NOT NULL
+           CHECK ((trade.amount).amount >= 0                   -- не должен быть отрицательным
+                 AND ((trade.rate).code IN ((trade.rate).base, (trade.rate)."quote") -- валюта сделки и котировка друг другу релевантны
+                 AND (trade.amount).code != 'RUR'))             -- проверяем что не по покупке рубля за рубль    
     ,payload      JSONB                              -- тут пэйлоад схема-специфичный для каждого клиента
     ,balance      currency_amount
            CHECK ((trade).code = (balance).code)     -- проверим что сделка и баланс совпадают по валюте,
@@ -75,3 +73,21 @@ CREATE TABLE IF NOT EXISTS balance (
            CHECK  ((pl).code = 'RUR')
     ,PRIMARY KEY (id, time)
 );
+
+
+DROP TABLE IF EXISTS balance;
+CREATE TABLE IF NOT EXISTS registry(
+    id             bigint
+    ,time          timestamptz DEFAULT now()
+    ,client        varchar NOT NULL
+    ,trade         trade_type NOT NULL
+    ,payload       JSONB
+    ,balance       currency_amount      CHECK ((trade).code = (balance).code)
+    ,balance_price currency_rate       CHECK (ARRAY[(balance_price)."quote", (balance_price)."base"] @> ARRAY[(rate).base, (rate)."quote"] 
+                                              AND  
+                                              ARRAY[(balance_price)."quote", (balance_price)."base"] <@ ARRAY[(rate).base, (rate)."quote"])
+    ,pl           currency_amount      CHECK  ((pl).code = 'RUR')
+
+    ,PRIMARY KEY (id, time)
+);
+

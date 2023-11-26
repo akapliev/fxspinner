@@ -22,8 +22,7 @@ $$ LANGUAGE SQL IMMUTABLE STRICT;
 
 /* Оператор сложения */
 DROP OPERATOR IF EXISTS + (currency_amount, currency_amount) CASCADE;
-CREATE OPERATOR + (FUNCTION = add_currencies, LEFTARG = currency_amount, RIGHTARG = currency_amount)
-);
+CREATE OPERATOR + (FUNCTION = add_currencies, LEFTARG = currency_amount, RIGHTARG = currency_amount);
 
 /* Функция вычитания двух величин в одной валюте 
  */
@@ -55,7 +54,7 @@ $$ LANGUAGE SQL IMMUTABLE STRICT;
 
 /* оператор равенства */
 DROP OPERATOR IF EXISTS = (currency_amount, currency_amount) CASCADE;
-CREATE OPERATOR = (FUNCTION = equal, LEFTARG = currency_amount, RIGHTARG = currency_amount));
+CREATE OPERATOR = (FUNCTION = equal, LEFTARG = currency_amount, RIGHTARG = currency_amount);
 
 /* функция неравенства */
 DROP FUNCTION IF EXISTS not_equal(amount1 currency_amount, amount2 currency_amount) CASCADE;
@@ -218,4 +217,37 @@ $$ LANGUAGE SQL IMMUTABLE STRICT;
 DROP OPERATOR IF EXISTS @ (currency_rate, currency_rate) CASCADE;
 CREATE OPERATOR @ (FUNCTION = crossrate, LEFTARG = currency_rate, RIGHTARG = currency_rate);
 
+/* функция сигнализирующя о превышении лимита */
+DROP FUNCTION IF EXISTS limit_exceeded(currency_rate, trade_limit_type) CASCADE;
+CREATE OR REPLACE FUNCTION limit_exceeded(rate currency_rate, "limit" trade_limit_type)
+RETURNS boolean
+AS
+$$
+SELECT CASE WHEN     ("limit").direction = 'BUY'
+                 AND (rate).base = ("limit"."rate").base
+                 AND (rate)."quote" = ("limit"."rate")."quote"
+                    THEN  (rate).rate > ("limit"."rate").rate
+            WHEN     ("limit").direction = 'BUY'
+                 AND (rate).base = ("limit"."rate")."quote" 
+                 AND (rate)."quote" = ("limit"."rate").base 
+                    THEN  (1 / (rate).rate) < ("limit"."rate").rate
+            WHEN     ("limit").direction = 'SELL'
+                 AND (rate).base = ("limit"."rate").base
+                 AND (rate)."quote" = ("limit"."rate")."quote"
+                    THEN  (rate).rate < ("limit"."rate").rate
+            WHEN     ("limit").direction = 'SELL'
+                 AND (rate).base = ("limit"."rate")."quote"
+                 AND (rate)."quote" = ("limit"."rate").base 
+                    THEN (1 / (rate).rate) > ("limit"."rate").rate 
+            ELSE NULL::boolean
+       END AS exceded_limit
+$$ LANGUAGE SQL IMMUTABLE STRICT;
 
+/* оператор превышения лимита */
+DROP OPERATOR IF EXISTS > (currency_rate, currency_rate) CASCADE;
+CREATE OPERATOR > (FUNCTION = limit_exceeded, LEFTARG = currency_rate, RIGHTARG = trade_limit_type);
+
+-- SELECT (101, 'USD', 'RUR')::currency_rate > ('BUY', (100, 'USD', 'RUR'))::trade_limit_type;
+-- SELECT (101, 'USD', 'RUR')::currency_rate > ('BUY', (0.01, 'RUR', 'USD'))::trade_limit_type;
+-- SELECT (99, 'USD', 'RUR')::currency_rate > ('SELL', (100, 'USD', 'RUR'))::trade_limit_type;
+-- SELECT (99, 'USD', 'RUR')::currency_rate > ('SELL', (0.01, 'RUR', 'USD'))::trade_limit_type;

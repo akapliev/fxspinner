@@ -11,11 +11,6 @@ SELECT crossrate((1/90::numeric, 'RUR', 'USD'), (14, 'CNY', 'RUR'));
 SELECT crossrate((1/90::numeric, 'RUR', 'USD'), (1/14::numeric, 'RUR', 'CNY'));
 SELECT (1/90::numeric, 'RUR', 'USD')::currency_ratio @ (1/14::numeric, 'RUR', 'CNY')::currency_ratio;
 SELECT (100, 'USD')::currency_amount @ (1/90::numeric, 'RUR', 'USD')::currency_ratio @ (1/14::numeric, 'RUR', 'CNY')::currency_ratio;
-SELECT closest_quote('SELL', 'RUR', 'CNY', '2023-11-19 10:00 MSK');
-SELECT closest_quote('SELL', 'RUR', 'CNY', '2023-10-19 10:00 MSK') IS NULL;
-SELECT *, closest_quote(time, direction, 'RUR', trade.code) FROM registry;
-SELECT latest_limit('checkouter', 'SELL', 'RUR', 'CNY', '2023-11-19 10:00 MSK');
-SELECT latest_limit('checkouter', 'BUY', 'RUR', 'CNY');
 SELECT substract_currencies((1000, 'USD'), (2000, 'USD'));
 SELECT add_currencies((1000, 'USD'), (2000, 'USD'));
 SELECT (1000, 'USD')::currency_amount + (2000, 'USD')::currency_amount_type;
@@ -24,9 +19,10 @@ SELECT (95, 'RUR')::currency_amount / (1, 'USD')::currency_amount_type;
 SELECT (96, 'CNY')::currency_amount != (95, 'RUR')::currency_amount;
 
 
-SELECT * FROM registry;
-SELECT * FROM quotes;
-SELECT * FROM limits;
+
+
+SELECT *, (trade).amount FROM registry;
+
 
 CALL update_balance();
 
