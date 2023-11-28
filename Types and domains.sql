@@ -55,10 +55,18 @@ CREATE TYPE currency_rate_type AS (
     ,"quote" currency_code
 );
 
+
+-- SELECT (95, 'USD', 'RUR')::currency_rate_type;
+ -- SELECT NULL::currency_rate_type;
+
 DROP DOMAIN IF EXISTS currency_rate CASCADE;
 CREATE DOMAIN currency_rate AS currency_rate_type 
         CHECK (((VALUE).rate IS NOT NULL AND (VALUE).rate > 0) AND (VALUE).base != (VALUE).quote);
 
+-- SELECT (95, 'USD', 'RUR')::currency_rate;
+-- SELECT NULL::currency_rate;
+
+    
 DROP TYPE IF EXISTS trade_limit_type CASCADE;
 CREATE TYPE trade_limit_type AS (
     direction     direction_type

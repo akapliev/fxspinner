@@ -12,14 +12,14 @@ WITH tmp1 AS (SELECT id
                      ,balance_price
                      ,pl
                 FROM balance
-               WHERE ((trade).amount).code = 'EUR'
+               WHERE ((trade).amount).code != 'EUR'
                ORDER BY time ASC, id ASC),
     tmp2 AS  (SELECT * 
-                     ,(CASE (trade).direction WHEN 'SELL' THEN 1 ELSE -1 END ) * (((trade).amount @ ((trade).rate)) - ((trade).amount @ reference_rate)) as pl_transaction
+                     ,(CASE (trade).direction WHEN 'SELL' THEN 1 ELSE -1 END) AS sig
+                     ,(trade).amount @ (trade).rate  AS amount_at_rate
+                     ,(trade).amount @ reference_rate AS amount_at_reference
+                     -- ,(CASE (trade).direction WHEN 'SELL' THEN 1 ELSE -1 END ) * (((trade).amount @ ((trade).rate)) - ((trade).amount @ reference_rate)) as pl_transaction
                 FROM tmp1)
-SELECT *,
-       pl - pl_transaction AS pl_time
+SELECT *
+       --, pl - pl_transaction AS pl_time
   FROM tmp2;
-
-  
--- надо обработать NULLS в операторах
