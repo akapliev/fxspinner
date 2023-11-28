@@ -11,31 +11,33 @@ $$ LANGUAGE SQL IMMUTABLE STRICT;
 
 --SELECT abs((-1000,'USD')::currency_amount);
 
+
 /* Функция сложения двух величин в одной валюте */
-DROP FUNCTION IF EXISTS add_currencies(currency_amount currency_amount) CASCADE;
-CREATE OR REPLACE FUNCTION add_currencies(amount1 currency_amount, amount2 currency_amount)
+DROP FUNCTION IF EXISTS add_currencies(currency_amount_type, currency_amount_type) CASCADE;
+CREATE OR REPLACE FUNCTION add_currencies(amount1 currency_amount_type, amount2 currency_amount_type)
 RETURNS currency_amount_type
 AS
 $$
-    SELECT CASE WHEN (amount1).code = (amount2).code THEN ((amount1).amount + (amount2).amount, (amount1).code)::currency_amount
+    SELECT CASE WHEN (amount1).code = (amount2).code THEN ((amount1).amount + (amount2).amount, (amount1).e)::currency_amount
                 ELSE NULL
            END;
 $$ LANGUAGE SQL IMMUTABLE STRICT;
 
 
 /* Оператор сложения */
-DROP OPERATOR IF EXISTS + (currency_amount, currency_amount) CASCADE;
-CREATE OPERATOR + (FUNCTION = add_currencies, LEFTARG = currency_amount, RIGHTARG = currency_amount);
+DROP OPERATOR IF EXISTS + (currency_amount_type, currency_amount_type) CASCADE;
+CREATE OPERATOR + (FUNCTION = add_currencies, LEFTARG = currency_amount_type, RIGHTARG = currency_amount_type);
 
 --SELECT (1000, 'RUR')::currency_amount + (500, 'RUR')::currency_amount;
 --SELECT (1000, 'RUR')::currency_amount + (500, 'USD')::currency_amount;
+--SELECT (1000, 'RUR')::currency_amount_type + NULL::currency_amount_type;
 
 
 
 /* Функция вычитания двух величин в одной валюте 
  */
-DROP FUNCTION IF EXISTS subtract_currencies(currency_amount, currency_amount) CASCADE;
-CREATE OR REPLACE FUNCTION subtract_currencies(amount1 currency_amount, amount2 currency_amount)
+DROP FUNCTION IF EXISTS subtract_currencies(currency_amount_type, currency_amount_type) CASCADE;
+CREATE OR REPLACE FUNCTION subtract_currencies(amount1 currency_amount_type, amount2 currency_amount_type)
 RETURNS currency_amount_type
 AS
 $$
@@ -45,11 +47,12 @@ $$
 $$ LANGUAGE SQL IMMUTABLE STRICT;
 
 /* Оператор вычитания */
-DROP OPERATOR IF EXISTS - (currency_amount, currency_amount) CASCADE;
-CREATE OPERATOR - (FUNCTION = subtract_currencies, LEFTARG = currency_amount, RIGHTARG = currency_amount);
+DROP OPERATOR IF EXISTS - (currency_amount_type, currency_amount_type) CASCADE;
+CREATE OPERATOR - (FUNCTION = subtract_currencies, LEFTARG = currency_amount_type, RIGHTARG = currency_amount_type);
 
 --SELECT (1000, 'RUR')::currency_amount - (500, 'RUR')::currency_amount;
 --SELECT (1000, 'RUR')::currency_amount - (500, 'USD')::currency_amount;
+--SELECT (1000, 'RUR')::currency_amount_type - NULL::currency_amount_type;
 
 
 /* Функции и операторы сравнения */
