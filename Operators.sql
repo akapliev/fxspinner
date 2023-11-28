@@ -177,8 +177,8 @@ CREATE OPERATOR >= (FUNCTION = greater_or_equal_then, LEFTARG = currency_amount,
 
 /* Функция левого умножения */
 DROP FUNCTION IF EXISTS multiply(numeric, currency_amount) CASCADE;
-CREATE OR REPLACE FUNCTION multiply(coef numeric, amount currency_amount)
-RETURNS currency_amount
+CREATE OR REPLACE FUNCTION multiply(coef numeric, amount currency_amount_type)
+RETURNS currency_amount_type
 AS
 $$
     SELECT (coef * (amount).amount, (amount)."code");
@@ -186,9 +186,11 @@ $$ LANGUAGE SQL IMMUTABLE STRICT;
 
 /* Оператор левого умножения */
 DROP OPERATOR IF EXISTS * (numeric, currency_amount) CASCADE;
-CREATE OPERATOR * (FUNCTION = multiply, LEFTARG = numeric, RIGHTARG = currency_amount);
+CREATE OPERATOR * (FUNCTION = multiply, LEFTARG = numeric, RIGHTARG = currency_amount_type);
 
 -- SELECT 3 * (1000, 'USD')::currency_amount;
+ SELECT 3 * NULL::currency_amount_type;
+
 
 
 /* Функция правого умножения */
@@ -318,3 +320,21 @@ CREATE OPERATOR > (FUNCTION = limit_exceeded, LEFTARG = currency_rate, RIGHTARG 
 -- SELECT (101, 'USD', 'RUR')::currency_rate > ('BUY', (0.01, 'RUR', 'USD'))::trade_limit_type;
 -- SELECT (99, 'USD', 'RUR')::currency_rate > ('SELL', (100, 'USD', 'RUR'))::trade_limit_type;
 -- SELECT (99, 'USD', 'RUR')::currency_rate > ('SELL', (0.01, 'RUR', 'USD'))::trade_limit_type;
+
+DROP FUNCTION IF EXISTS trade_percentage(currency_amount_type, currency_amount_type) CASCADE;
+CREATE OR REPLACE FUNCTION trade_percentage(amount1 currency_amount_type, amount2 currency_amount_type)
+RETURNS numeric
+AS
+$$
+SELECT CASE WHEN (amount1).code = (amount2).code THEN (amount1).amount::NUMERIC/(amount2).amount
+            ELSE NULL
+       END;
+$$ LANGUAGE SQL IMMUTABLE STRICT;
+
+
+DROP OPERATOR IF EXISTS % (currency_amount_type, currency_amount_type) CASCADE;
+CREATE OPERATOR % (FUNCTION = trade_percentage, LEFTARG = currency_amount_type, RIGHTARG = currency_amount_type);
+
+SELECT (5, 'USD')::currency_amount % (95, 'RUR')::currency_amount;
+
+

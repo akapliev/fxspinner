@@ -8,6 +8,7 @@ WITH tmp1 AS (SELECT id
                      ,client 
                      ,trade 
                      ,closest_quote((trade).direction, ((trade).rate)."base", ((trade).rate)."quote", time) AS ref_rate
+                     ,latest_limit(client, (trade).direction, ((trade).rate)."base", ((trade).rate)."quote", time) AS ref_limit
                      ,balance 
                      ,balance_price
                      ,pl AS overall_pl
@@ -21,9 +22,12 @@ SELECT id
        ,client
        ,trade
        ,ref_rate
+       ,ref_limit
+       ,(trade).rate > ref_limit AS overlimit
        ,balance
        ,balance_price
        ,overall_pl
        ,tr_cost
+       ,-round(100 * tr_cost % ((trade).amount @ (trade).rate), 2) AS loss_perc
        ,overall_pl - tr_cost AS gain
   FROM tmp2;
