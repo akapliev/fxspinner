@@ -23,7 +23,7 @@ CREATE TABLE IF NOT EXISTS limits (
 DROP TABLE IF EXISTS quotes;
 CREATE TABLE IF NOT EXISTS quotes (
     id         serial
-    ,time      timestamp DEFAULT now()            -- время снятия данных
+    ,time      timestamptz DEFAULT now()            -- время снятия данных
     ,direction direction_type NOT NULL                    -- направление котировки (покупаем или продаем)
     ,rate      currency_rate                      -- котировка валютной пары
     ,"source"  varchar                            -- источник данных (пока varchar, потом подумаем)

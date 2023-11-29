@@ -321,6 +321,8 @@ CREATE OPERATOR > (FUNCTION = limit_exceeded, LEFTARG = currency_rate, RIGHTARG 
 -- SELECT (99, 'USD', 'RUR')::currency_rate > ('SELL', (100, 'USD', 'RUR'))::trade_limit_type;
 -- SELECT (99, 'USD', 'RUR')::currency_rate > ('SELL', (0.01, 'RUR', 'USD'))::trade_limit_type;
 
+
+/* расчет отношения одной суммы от другой */
 DROP FUNCTION IF EXISTS trade_percentage(currency_amount_type, currency_amount_type) CASCADE;
 CREATE OR REPLACE FUNCTION trade_percentage(amount1 currency_amount_type, amount2 currency_amount_type)
 RETURNS numeric
@@ -331,7 +333,7 @@ SELECT CASE WHEN (amount1).code = (amount2).code THEN (amount1).amount::NUMERIC/
        END;
 $$ LANGUAGE SQL IMMUTABLE STRICT;
 
-
+/* расчет отношения одной суммы от другой */
 DROP OPERATOR IF EXISTS % (currency_amount_type, currency_amount_type) CASCADE;
 CREATE OPERATOR % (FUNCTION = trade_percentage, LEFTARG = currency_amount_type, RIGHTARG = currency_amount_type);
 

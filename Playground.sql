@@ -1,33 +1,11 @@
-
-SELECT *, (trade).amount FROM registry;
-
-
 CALL update_balance();
 
-WITH tmp1 AS (SELECT id 
-                     ,client 
-                     ,trade 
-                     ,closest_quote((trade).direction, ((trade).rate)."base", ((trade).rate)."quote", time) AS ref_rate
-                     ,latest_limit(client, (trade).direction, ((trade).rate)."base", ((trade).rate)."quote", time) AS ref_limit
-                     ,balance 
-                     ,balance_price
-                     ,pl AS overall_pl
-                FROM balance
-               --WHERE ((trade).amount).code != 'EUR'
-               ORDER BY time ASC, id ASC),
-    tmp2 AS  (SELECT * 
-                     ,(CASE (trade).direction WHEN 'SELL' THEN 1 ELSE -1 END ) * (((trade).amount @ ((trade).rate)) - ((trade).amount @ ref_rate))::currency_amount_type as tr_cost
-                FROM tmp1)
-SELECT id
-       ,client
-       ,trade
-       ,ref_rate
-       ,ref_limit
-       ,(trade).rate > ref_limit AS overlimit
-       ,balance
-       ,balance_price
-       ,overall_pl
-       ,tr_cost
-       ,-round(100 * tr_cost % ((trade).amount @ (trade).rate), 2) AS loss_perc
-       ,overall_pl - tr_cost AS gain
-  FROM tmp2;
+SELECT 
+    (trade).direction
+    ,((trade).amount).code || ' ' ||  round(((trade).amount).amount, 2)::varchar  AS trade
+    ,round(((trade).rate).rate, 2)::varchar || ' ' || ((trade).rate).base || '/' || ((trade).rate).quote AS trade_price
+    ,round((ref_rate).rate, 2)::varchar || ' ' || (ref_rate).base || '/' || (ref_rate).quote AS market_price
+    ,(balance).code || ' ' ||  round((balance).amount, 2)::varchar  AS balance
+    ,round((ref_limit).rate, 2)::varchar || ' ' || (ref_limit).base || '/' || (ref_limit).quote AS "limit"
+    ,overlimit
+FROM extended_balance();
